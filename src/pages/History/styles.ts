@@ -59,3 +59,39 @@ export const HistoryList = styled.div`
       }
    }
 `;
+
+const STATUS_COLORS ={
+   yellow: 'yellow-500',
+   green: 'green-500',
+   red: 'red-500',
+} as const // Adiciono o 'as const' no final para o typescript entender que cada
+// chave do objeto, possui exatamente o valor passado, evitando que o typescript
+// defina a chave (yellow, green ou red) como uma string que pode ter seu valor
+// alterado.
+interface StatusProps {
+   // Os valores para a propriedade statusColor são as chaves do objeto
+   // STATUS_COLORS. Isso pode ser escrito como:
+   // statusColor: 'yellow' | 'red' | 'green';
+   // ou, da maneira abaixo.
+   // A vantagem de utilizar o keyof typeof é que se algum dia o objeto
+   // STATUS_COLORS, mudar, eu não preciso alterar a definição da interface
+   // StatusProps
+   // Obs.: Como o typescript não consegue ler um objeto javascript, mas 
+   // consegue ler a tipagem de um objeto javascript, precisamos fazer a leitura
+   // do objeto, utilizando o 'typeof' e pegamos a chave do objeto com o 'keyof'.
+   statusColor: keyof typeof STATUS_COLORS;
+}
+
+export const Status = styled.span<StatusProps>`
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+
+   &::before {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: ${props => props.theme[STATUS_COLORS[props.statusColor]]};
+   }
+`;
