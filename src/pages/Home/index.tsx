@@ -1,5 +1,12 @@
 import { Play } from "phosphor-react";
 import { useForm } from "react-hook-form";
+// '@hookform/resolvers/zod, vai permitir a integração do React-Hook-Form com a
+// biblioteca de validação 'zod'
+import { zodResolver } from '@hookform/resolvers/zod';
+// Importa o zod desta forma, pois a lib zod não possui um export default, e para
+// não precisarmos importar função por função entre chaves, utilizamos a sintaxe
+// * as zod, assim importamos todas as funções de uma só vez.
+import * as zod from 'zod';
 
 import { 
    HomeContainer,
@@ -11,14 +18,24 @@ import {
    StartCountdownButton
 } from "./styles";
 
+const newCycleFormValidationSchema = zod.object({
+   task: zod.string().min(1, 'Informe a tarefa.'),
+   minutesAmount: zod
+      .number()
+      .min(5, 'O ciclo deve ser de no mínimo 5 minutos.')
+      .max(60, 'O ciclo deve ser de no máximo 60 minutos.')
+})
+
 export function Home() {
-   const { register, handleSubmit, watch } = useForm();
+   const { register, handleSubmit, watch } = useForm({
+      resolver: zodResolver(newCycleFormValidationSchema)
+   });
 
    function handleCreateNewCicle(data: any) {
       console.log(data)
    }
 
-   // Monitora o input 'task'
+   // Monitora o input 'task' (Controlled component)
    const task = watch('task');
    const isSubmitButtonDisabled = !task;
 
