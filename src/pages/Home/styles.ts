@@ -50,6 +50,12 @@ const BaseInput = styled.input`
 
 export const TaskInput = styled(BaseInput)`
    flex: 1; // Ocupa o tamanho total disponível para o elemento, podendo aumentar ou diminuir, de acordo com o tamanho da tela. Para funcionar, o elemento pai precisar ter o display flex.
+
+   // Soluçao para remover a seta do input, que é gerada automaticamente pelo elemento datalist, no input
+   // Testado no Chrome e no Edge.
+   &::-webkit-calendar-picker-indicator {
+      display: none !important;
+   }
 `;
 
 export const MinutesAmountInput = styled(BaseInput)`
