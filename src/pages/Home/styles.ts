@@ -37,6 +37,7 @@ const BaseInput = styled.input`
    font-weight: 700;
    font-size: inherit; // herda o valor do font-size do elemento pai. Inherit pode ser aplicado para outras propriedades css
    padding: 0 0.5rem;
+   color: ${(props) => props.theme['gray-100']};
 
    &:focus {
       box-shadow: none;
