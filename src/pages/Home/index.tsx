@@ -1,12 +1,6 @@
 import { HandPalm, Play } from "phosphor-react";
 import { useForm } from "react-hook-form";
-// '@hookform/resolvers/zod, vai permitir a integração do React-Hook-Form com a
-// biblioteca de validação 'zod'
-import { zodResolver } from '@hookform/resolvers/zod';
-// Importa o zod desta forma, pois a lib zod não possui um export default, e para
-// não precisarmos importar função por função entre chaves, utilizamos a sintaxe
-// * as zod, assim importamos todas as funções de uma só vez.
-import * as zod from 'zod';
+
 import { differenceInSeconds } from "date-fns";
 
 import {
@@ -19,19 +13,9 @@ import { useEffect, useState } from "react";
 import { NewCycleForm } from "./components/NewCycleForm";
 import { Countdown } from "./components/Countdown";
 
-const newCycleFormValidationSchema = zod.object({
-   task: zod.string().min(1, 'Informe a tarefa.'),
-   minutesAmount: zod
-      .number()
-      .min(1, 'O ciclo deve ser de no mínimo 5 minutos.')
-      .max(60, 'O ciclo deve ser de no máximo 60 minutos.')
-});
 
-// interface NewCycleFormData {
-//    task: string;
-//    minutesAmount: number;
-// }
-type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
+
+
 
 interface Cycle {
    id: string;
@@ -45,52 +29,16 @@ interface Cycle {
 export function Home() {
    const [cycles, setCycles] = useState<Cycle[]>([]); // Temos a informação de todos os ciclos
    const [activeCycleId, setActiveCycleId] = useState<string | null>(null); // Temos a informação do ciclo que está ativo
-   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+   
 
-   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
-      resolver: zodResolver(newCycleFormValidationSchema),
-      defaultValues: {
-         task: '',
-         minutesAmount: 0
-      }
-   });
+
 
    // Buscar o ciclo ativo, no estado cycles, com base na informação contida no estado activeCycleId
    const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
-   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
    
-   useEffect(() => {
-      let interval: number;
-      
-      if (activeCycle) {
-         interval = setInterval(() => {
-            const secondsDifference = differenceInSeconds(
-               new Date(), activeCycle.startDate
-            );
+   
 
-            if (secondsDifference >= totalSeconds) {
-               setCycles(state =>
-                  state.map((cycle) => {
-                     if(cycle.id === activeCycleId) {
-                        return {...cycle, finishedDate: new Date()}
-                     } else {
-                        return cycle
-                     }
-                  })
-               );
-               setAmountSecondsPassed(totalSeconds);
-               clearInterval(interval);
-            } else {
-               setAmountSecondsPassed(secondsDifference);
-            }
-         }, 1000)
-      }
-
-      return () => {
-         clearInterval(interval);
-      }
-   }, [activeCycle, totalSeconds]);
 
    function handleCreateNewCycle(data: NewCycleFormData) {
       const id = String(new Date().getTime());
@@ -149,12 +97,21 @@ export function Home() {
    const task = watch('task');
    const isSubmitButtonDisabled = !task;
 
+   /**
+    * Prop Drilling - Quando a gente tem MUITAS propriedades APENAS para comunicação entre componentes
+    * Context Api - Permite  compartilharmos informações entre vários componentes ao mesmo tempo
+    */
+
    return (
       <HomeContainer>
          <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
             <NewCycleForm />
 
-            <Countdown />
+            <Countdown
+               activeCycle={activeCycle}
+               setCycles={setCycles}
+               activeCycleId={activeCycleId}
+            />
 
             {activeCycle ? (
                   <StopCountdownButton onClick={handleInterruptCycle} type="button">
