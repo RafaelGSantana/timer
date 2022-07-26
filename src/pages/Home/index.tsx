@@ -7,8 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 // não precisarmos importar função por função entre chaves, utilizamos a sintaxe
 // * as zod, assim importamos todas as funções de uma só vez.
 import * as zod from 'zod';
+import { differenceInSeconds } from "date-fns";
 
-import { 
+import {
    HomeContainer,
    FormContainer,
    TaskInput,
@@ -17,7 +18,7 @@ import {
    Separator,
    StartCountdownButton
 } from "./styles";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const newCycleFormValidationSchema = zod.object({
    task: zod.string().min(1, 'Informe a tarefa.'),
@@ -37,6 +38,7 @@ interface Cycle {
    id: string;
    task: string;
    minutesAmount: number;
+   startDate: Date;
 }
 
 export function Home() {
@@ -52,31 +54,43 @@ export function Home() {
       }
    });
 
+   // Buscar o ciclo ativo, no estado cycles, com base na informação contida no estado activeCycleId
+   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
+
+   useEffect(() => {
+      if (activeCycle) {
+         setInterval(() => {
+            setAmountSecondsPassed(differenceInSeconds(new Date(), activeCycle.startDate))
+         }, 1000)
+      }
+   }, [activeCycle]);
+
    function handleCreateNewCicle(data: NewCycleFormData) {
       const id = String(new Date().getTime());
 
       const newCycle: Cycle = {
          id,
          task: data.task,
-         minutesAmount: data.minutesAmount
+         minutesAmount: data.minutesAmount,
+         startDate: new Date()
       };
 
       // Sempre que uma alteração de estado depender do valor anterior,
-      // vamos usar o formato de arrow function para alterar o valor
+      // vamos usar o formato de arrow function para alterar o valor, respeitando
+      // as closures no React
       setCycles(state => [...state, newCycle]);
       setActiveCycleId(id);
 
       reset();
    }
 
-   // Buscar o ciclo ativo, no estado cycles, com base na informação contida no estado activeCycleId
-   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
+
 
    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
    const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
 
-   const minutesAmountLeft = Math.floor(currentSeconds/60);
-   const secondsAmountLeft  = currentSeconds % 60;
+   const minutesAmountLeft = Math.floor(currentSeconds / 60);
+   const secondsAmountLeft = currentSeconds % 60;
 
    const minutes = String(minutesAmountLeft).padStart(2, '0');
    const seconds = String(secondsAmountLeft).padStart(2, '0');
