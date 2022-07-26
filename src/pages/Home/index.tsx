@@ -90,8 +90,6 @@ export function Home() {
       reset();
    }
 
-
-
    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
    const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
 
@@ -100,6 +98,12 @@ export function Home() {
 
    const minutes = String(minutesAmountLeft).padStart(2, '0');
    const seconds = String(secondsAmountLeft).padStart(2, '0');
+
+   useEffect(() => {
+      if(activeCycle) {
+         document.title = `${activeCycle?.task} - ${minutes}:${seconds}`
+      }
+   }, [minutes, seconds, activeCycle]);
 
    // Monitora o input 'task' (Controlled component)
    const task = watch('task');
