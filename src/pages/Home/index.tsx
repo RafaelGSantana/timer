@@ -17,6 +17,7 @@ import {
    Separator,
    StartCountdownButton
 } from "./styles";
+import { useState } from "react";
 
 const newCycleFormValidationSchema = zod.object({
    task: zod.string().min(1, 'Informe a tarefa.'),
@@ -30,10 +31,18 @@ const newCycleFormValidationSchema = zod.object({
 //    task: string;
 //    minutesAmount: number;
 // }
-
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
+interface Cycle {
+   id: string;
+   task: string;
+   minutesAmount: number;
+}
+
 export function Home() {
+   const [cycles, setCycles] = useState<Cycle[]>([]); // Temos a informação de todos os ciclos
+   const [activeCycleId, setActiveCycleId] = useState<string | null>(null); // Temos a informação do ciclo que está ativo
+
    const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
       resolver: zodResolver(newCycleFormValidationSchema),
       defaultValues: {
@@ -43,11 +52,25 @@ export function Home() {
    });
 
    function handleCreateNewCicle(data: NewCycleFormData) {
-      console.log(data);
+      const id = String(new Date().getTime());
+
+      const newCycle: Cycle = {
+         id,
+         task: data.task,
+         minutesAmount: data.minutesAmount
+      };
+
+      // Sempre que uma alteração de estado depender do valor anterior,
+      // vamos usar o formato de arrow function para alterar o valor
+      setCycles(state => [...state, newCycle]);
+      setActiveCycleId(id);
 
       reset();
    }
 
+   // Buscar o ciclo ativo, no estado cycles, com base na informação contida no estado activeCycleId
+   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
+   
    // Monitora o input 'task' (Controlled component)
    const task = watch('task');
    const isSubmitButtonDisabled = !task;
