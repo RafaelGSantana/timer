@@ -14,27 +14,11 @@ import {
    StopCountdownButton
 } from "./styles";
 
-import { createContext, useEffect, useState } from "react";
+import { useContext } from "react";
 // import { NewCycleForm } from "./components/NewCycleForm";
 import { Countdown } from "./components/Countdown";
 import { NewCycleForm } from "./components/NewCycleForm";
-interface Cycle {
-   id: string;
-   task: string;
-   minutesAmount: number;
-   startDate: Date;
-   interruptDate?: Date;
-   finishedDate?: Date;
-}
-interface CyclesContextType {
-   activeCycle: Cycle | undefined;
-   activeCycleId: string | null;
-   amountSecondsPassed: number;
-   markCurrentCycleAsFinished: () => void;
-   setSecondsPassed: (seconds: number) => void;
-}
-
-export const CyclesContext = createContext({} as CyclesContextType);
+import { CyclesContext } from "../../contexts/CyclesContext";
 
 const newCycleFormValidationSchema = zod.object({
    task: zod.string().min(1, 'Informe a tarefa.'),
@@ -53,10 +37,7 @@ type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 //    }
 
 export function Home() {
-   const [cycles, setCycles] = useState<Cycle[]>([]); // Temos a informação de todos os ciclos
-   const [activeCycleId, setActiveCycleId] = useState<string | null>(null); // Temos a informação do ciclo que está ativo
-   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
-   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId); // Buscar o ciclo ativo, no estado cycles, com base na informação contida no estado activeCycleId
+   const { createNewCycle, interruptCurrentCycle, activeCycle } = useContext(CyclesContext);
 
    const newCycleForm = useForm<NewCycleFormData>({
       resolver: zodResolver(newCycleFormValidationSchema),
@@ -66,87 +47,24 @@ export function Home() {
       }
    });
 
-   const { handleSubmit, watch, reset } = newCycleForm;
-
-   function handleCreateNewCycle(data: NewCycleFormData) {
-      const id = String(new Date().getTime());
-
-      const newCycle: Cycle = {
-         id,
-         task: data.task,
-         minutesAmount: data.minutesAmount,
-         startDate: new Date()
-      };
-
-      // Sempre que uma alteração de estado depender do valor anterior,
-      // vamos usar o formato de arrow function para alterar o valor, respeitando
-      // as closures no React
-      setCycles(state => [...state, newCycle]);
-      setActiveCycleId(id);
-      setAmountSecondsPassed(0);
-
-      reset();
-   }
-
-   function handleInterruptCycle() {
-      setCycles(
-         state => state.map((cycle) => {
-            if (cycle.id === activeCycleId) {
-               return { ...cycle, interruptDate: new Date() };
-            } else {
-               return cycle;
-            }
-         })
-      );
-
-      setActiveCycleId(null);
-
-   }
-
-   function markCurrentCycleAsFinished() {
-      setCycles(state =>
-         state.map((cycle) => {
-            if (cycle.id === activeCycleId) {
-               return { ...cycle, finishedDate: new Date() }
-            } else {
-               return cycle
-            }
-         })
-      );
-   }
-
-   function setSecondsPassed(seconds: number) {
-      setAmountSecondsPassed(seconds);
-   }
+   const { handleSubmit, watch } = newCycleForm;
 
    // Monitora o input 'task' (Controlled component)
    const task = watch('task');
    const isSubmitButtonDisabled = !task;
 
-   /**
-    * Prop Drilling - Quando a gente tem MUITAS propriedades APENAS para comunicação entre componentes
-    * Context Api - Permite  compartilharmos informações entre vários componentes ao mesmo tempo
-    */
-
    return (
       <HomeContainer>
-         <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
+         <form onSubmit={handleSubmit(createNewCycle)} action="">
 
-            <CyclesContext.Provider value={{
-               activeCycle,
-               activeCycleId,
-               markCurrentCycleAsFinished,
-               amountSecondsPassed,
-               setSecondsPassed
-            }}>
+
                <FormProvider {...newCycleForm}>
                   <NewCycleForm />
                </FormProvider>
                <Countdown />
-            </CyclesContext.Provider>
 
             {activeCycle ? (
-               <StopCountdownButton onClick={handleInterruptCycle} type="button">
+               <StopCountdownButton onClick={interruptCurrentCycle} type="button">
                   <HandPalm size={24} />
                   Interromper
                </StopCountdownButton>
