@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useState } from "react";
+import { createContext, ReactNode, useReducer, useState } from "react";
 
 interface CreateCycleData {
    task: string;
@@ -32,21 +32,34 @@ interface CyclesContextProviderProps {
 }
 
 export function CyclesContextProvider({ children }: CyclesContextProviderProps) {
-   const [cycles, setCycles] = useState<Cycle[]>([]); // Temos a informação de todos os ciclos
+   const [cycles, dispatch] = useReducer((state: Cycle[], action: any) => {
+      if (action.type === 'ADD_NEW_CYCLE') {
+         return [...state, action.payload.newCycle]
+      }
+
+      return state;
+   }, []);
+
    const [activeCycleId, setActiveCycleId] = useState<string | null>(null); // Temos a informação do ciclo que está ativo
    const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
    const activeCycle = cycles.find(cycle => cycle.id === activeCycleId); // Buscar o ciclo ativo, no estado cycles, com base na informação contida no estado activeCycleId
 
    function markCurrentCycleAsFinished() {
-      setCycles(state =>
-         state.map((cycle) => {
-            if (cycle.id === activeCycleId) {
-               return { ...cycle, finishedDate: new Date() }
-            } else {
-               return cycle
-            }
-         })
-      );
+      dispatch({
+         type: 'END_CURRENT_CYCLE',
+         payload: {
+            activeCycleId
+         }
+      });
+      // setCycles(state =>
+      //    state.map((cycle) => {
+      //       if (cycle.id === activeCycleId) {
+      //          return { ...cycle, finishedDate: new Date() }
+      //       } else {
+      //          return cycle
+      //       }
+      //    })
+      // );
    }
 
    function setSecondsPassed(seconds: number) {
@@ -66,21 +79,33 @@ export function CyclesContextProvider({ children }: CyclesContextProviderProps) 
       // Sempre que uma alteração de estado depender do valor anterior,
       // vamos usar o formato de arrow function para alterar o valor, respeitando
       // as closures no React
-      setCycles(state => [...state, newCycle]);
+      // setCycles(state => [...state, newCycle]);
+      dispatch({
+         type: 'ADD_NEW_CYCLE',
+         payload: {
+            newCycle
+         }
+      });
       setActiveCycleId(id);
       setAmountSecondsPassed(0);
    }
 
    function interruptCurrentCycle() {
-      setCycles(
-         state => state.map((cycle) => {
-            if (cycle.id === activeCycleId) {
-               return { ...cycle, interruptDate: new Date() };
-            } else {
-               return cycle;
-            }
-         })
-      );
+      dispatch({
+         type: 'INTERRUPT_CURRENT_CYCLE',
+         payload: {
+            activeCycleId
+         }
+      });
+      // setCycles(
+      //    state => state.map((cycle) => {
+      //       if (cycle.id === activeCycleId) {
+      //          return { ...cycle, interruptDate: new Date() };
+      //       } else {
+      //          return cycle;
+      //       }
+      //    })
+      // );
 
       setActiveCycleId(null);
 
