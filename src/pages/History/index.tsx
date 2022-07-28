@@ -12,13 +12,9 @@ export function History() {
       <HistoryContainer>
          <h1>Meu histórico</h1>
 
-         <pre>
-            {JSON.stringify(cycles, null, 2)}
-         </pre>
-
          <HistoryList>
             {/* O componente HistoryList só foi criado para podermos aplicar um scroll
-         horizontal na tabela, para efeito de resposividade. */}
+            horizontal na tabela, para efeito de resposividade. */}
             <table>
                <thead>
                   <tr>
@@ -35,7 +31,7 @@ export function History() {
                         <tr key={cycle.id}>
                            <td>{cycle.task}</td>
                            <td>{cycle.minutesAmount} minutos</td>
-                           <td>{formatDistanceToNow(cycle.startDate, {
+                           <td>{formatDistanceToNow(new Date(cycle.startDate), {
                               addSuffix: true,
                               locale: ptBR
                            })}</td>
