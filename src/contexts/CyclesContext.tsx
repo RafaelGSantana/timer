@@ -31,22 +31,50 @@ interface CyclesContextProviderProps {
    children: ReactNode;
 }
 
+interface CyclesState {
+   cycles: Cycle[];
+   activeCycleId: string | null;
+}
+
 export function CyclesContextProvider({ children }: CyclesContextProviderProps) {
-   const [cycles, dispatch] = useReducer((state: Cycle[], action: any) => {
+   const [cyclesState, dispatch] = useReducer((state: CyclesState, action: any) => {
       if (action.type === 'ADD_NEW_CYCLE') {
-         return [...state, action.payload.newCycle]
+         return {
+            ...state,
+            cycles: [...state.cycles, action.payload.newCycle],
+            activeCycleId: action.payload.newCycle.id
+         }
+      }
+
+      if (action.type === 'INTERRUPT_CURRENT_CYCLE') {
+         return {
+            ...state,
+            cycles: state.cycles.map(cycle => {
+               if (cycle.id === state.activeCycleId) {
+                  return { ...cycle, interruptDate: new Date() }
+               } else {
+                  return cycle
+               }
+            }),
+            activeCycleId: null
+         }
       }
 
       return state;
-   }, []);
+   }, {
+      cycles: [],
+      activeCycleId: null
+   });
 
-   const [activeCycleId, setActiveCycleId] = useState<string | null>(null); // Temos a informação do ciclo que está ativo
    const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+
+   const { cycles, activeCycleId } = cyclesState;
+
    const activeCycle = cycles.find(cycle => cycle.id === activeCycleId); // Buscar o ciclo ativo, no estado cycles, com base na informação contida no estado activeCycleId
 
    function markCurrentCycleAsFinished() {
       dispatch({
-         type: 'END_CURRENT_CYCLE',
+         type: 'MARK_CURRENT_CYCLE_AS_FINISHED',
          payload: {
             activeCycleId
          }
@@ -76,17 +104,12 @@ export function CyclesContextProvider({ children }: CyclesContextProviderProps) 
          startDate: new Date()
       };
 
-      // Sempre que uma alteração de estado depender do valor anterior,
-      // vamos usar o formato de arrow function para alterar o valor, respeitando
-      // as closures no React
-      // setCycles(state => [...state, newCycle]);
       dispatch({
          type: 'ADD_NEW_CYCLE',
          payload: {
             newCycle
          }
       });
-      setActiveCycleId(id);
       setAmountSecondsPassed(0);
    }
 
@@ -106,9 +129,6 @@ export function CyclesContextProvider({ children }: CyclesContextProviderProps) 
       //       }
       //    })
       // );
-
-      setActiveCycleId(null);
-
    }
 
    return (
