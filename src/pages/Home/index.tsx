@@ -20,6 +20,7 @@ import { Countdown } from "./components/Countdown";
 import { NewCycleForm } from "./components/NewCycleForm";
 import { CyclesContext } from "../../contexts/CyclesContext";
 
+// Esquema de validação dos campos do formulário
 const newCycleFormValidationSchema = zod.object({
    task: zod.string().min(1, 'Informe a tarefa.'),
    minutesAmount: zod
@@ -39,6 +40,8 @@ type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 export function Home() {
    const { createNewCycle, interruptCurrentCycle, activeCycle } = useContext(CyclesContext);
 
+   // Foi declarada uma constante para o hook useFor para termos acesso a todos os métodos/ propriedades que ela possui
+   // e assim, posso enviar através do contexto próprio da lib React Hook Form (FormProvider).
    const newCycleForm = useForm<NewCycleFormData>({
       resolver: zodResolver(newCycleFormValidationSchema),
       defaultValues: {
@@ -47,15 +50,18 @@ export function Home() {
       }
    });
 
+   // Desestruturação dos métodos que utiizaremos neste componente
    const { handleSubmit, watch, reset } = newCycleForm;
 
+   // Função que executa a função createNewCycle, criada no contexto e executa o médoto reset do React Hook Form.
    function handleCreateNewCycle(data: NewCycleFormData) {
       createNewCycle(data);
       reset();
    }
 
-   // Monitora o input 'task' (Controlled component)
+   // Monitora o input 'task' (Controlled component).
    const task = watch('task');
+   // Constante que obterá o valor de task, definindo se o botão será habilitado ou não.
    const isSubmitButtonDisabled = !task;
 
    return (

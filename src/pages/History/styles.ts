@@ -87,6 +87,7 @@ export const Status = styled.span<StatusProps>`
    align-items: center;
    gap: 0.5rem;
 
+   /* Cria elemento dentro da tag span, antes do conteúdo. */
    &::before {
       content: '';
       width: 0.5rem;

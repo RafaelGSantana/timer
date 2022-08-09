@@ -8,6 +8,8 @@ import { defaultTheme } from './styles/themes/default'
 
 export function App() {
   return (
+   // Posso alterar o tema da aplicação, criando outro arquivo de temas e alternar os temas de acordo com a informação
+   // obtida por um estado (useState) através de algum evento, exemplo, um clique do usuário, em algum botão.
     <ThemeProvider theme={defaultTheme}>
       <BrowserRouter>
          <CyclesContextProvider>

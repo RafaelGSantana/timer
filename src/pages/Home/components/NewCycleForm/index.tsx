@@ -11,6 +11,8 @@ import { CyclesContext } from "../../../../contexts/CyclesContext";
 
 export function NewCycleForm() {
    const { activeCycle } = useContext(CyclesContext);
+   // O useFormContext, só funciona aqui, pois definimos um FormProvider (Contexto próprio da lib React Hook Form), por
+   // volta do componente <NewCycleForm />, dentro do componente <Home />
    const { register } = useFormContext();
 
    return(
@@ -21,7 +23,7 @@ export function NewCycleForm() {
             id="task"
             placeholder="Dê um nome para seu projeto"
             list="task-suggestions"
-            {...register('task')}
+            {...register('task')} // A função register, do React-Hook-Form, cria um input com name="task" e retorna algumas propriedades do input, ex.: onChange, ref, etc...
             disabled={!!activeCycle} // Converte o activeCycle para boolean colocando os !!
          />
          {/* 
@@ -49,7 +51,7 @@ export function NewCycleForm() {
             step={5}
             min={5} // valor mínimo
             max={60} // valor máximo
-            {...register('minutesAmount', { valueAsNumber: true })}
+            {...register('minutesAmount', { valueAsNumber: true })} // Cria o input com name="minutesAmount" e converte o valor para o tipo number
             disabled={!!activeCycle}
          />
 
